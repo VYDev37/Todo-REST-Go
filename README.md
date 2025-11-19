@@ -1,4 +1,4 @@
-# TODO-CLI-GO
+# Todo-REST-GO
 
 ## Description: Only a simple Todo REST API
 ## Project only for my Go learning purpose.
