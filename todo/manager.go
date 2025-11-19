@@ -1,0 +1,130 @@
+package model
+
+import (
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"strings"
+)
+
+type TaskEditor interface {
+	Load() error
+
+	Add(name string, due string) error // Create
+	Get() []Task                       // Read
+	Remove(id int16) error             // Update
+	MarkasDone(id int16) error         // Delete
+
+	SetFile(name string) error
+	Save() error
+}
+
+type TaskManager struct {
+	taskList []Task
+	fileName string
+} // receiver of TaskEditor
+
+func (tm *TaskManager) Load() error {
+	data, err := os.ReadFile(tm.fileName)
+
+	if errors.Is(err, os.ErrNotExist) {
+		empty := []map[string]Task{}
+		data, err := json.Marshal(empty)
+		if err != nil {
+			return fmt.Errorf("error when trying to write new file: %v", err.Error())
+		}
+
+		os.WriteFile(tm.fileName, data, 0644)
+		fmt.Printf("File %s does not exist, creating one...\n", tm.fileName)
+
+		return nil
+	}
+	if err != nil {
+		return fmt.Errorf("error when trying to read file: %v", err.Error())
+	}
+
+	if err := json.Unmarshal(data, &tm.taskList); err != nil {
+		return fmt.Errorf("error when trying to parse data: %v", err.Error())
+	}
+
+	return nil
+}
+
+func (tm *TaskManager) Add(name string, due string) error {
+	if strings.TrimSpace(name) == "" {
+		return errors.New("Task name must not be empty")
+	}
+	if strings.TrimSpace(due) == "" {
+		return errors.New("Task due date must not be empty")
+	}
+
+	tm.taskList = append(tm.taskList, Task{
+		ID:   int16(len(tm.taskList) + 1),
+		Name: name,
+		Due:  due,
+		Done: false,
+	})
+
+	if err := tm.Save(); err != nil {
+		return err
+	}
+
+	fmt.Println("Saved tasks!")
+	return nil
+}
+
+func (tm *TaskManager) Get() []Task {
+	return tm.taskList
+}
+
+func (tm *TaskManager) Remove(id int16) error {
+	for i, task := range tm.taskList {
+		if task.ID == id {
+			tm.taskList = append(tm.taskList[:i], tm.taskList[i+1:]...) // remove element on array based on index
+			if err := tm.Save(); err != nil {
+				return err
+			}
+			return nil
+		}
+	}
+
+	return fmt.Errorf("task #%d not found", id)
+}
+
+func (tm *TaskManager) MarkasDone(id int16) error {
+	for i, task := range tm.taskList {
+		if task.ID == id {
+			tm.taskList[i].Done = true
+			if err := tm.Save(); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("task #%d not found", id)
+}
+
+func (tm *TaskManager) SetFile(name string) error {
+	if strings.TrimSpace(name) == "" || !strings.HasSuffix(name, ".json") {
+		return errors.New("file extension must be json")
+	}
+
+	tm.fileName = name
+	return nil
+}
+
+func (tm *TaskManager) Save() error {
+	data, err := json.MarshalIndent(tm.taskList, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error when marshalling json: %v", err.Error())
+	}
+
+	if err := os.WriteFile(tm.fileName, data, 0644); err != nil {
+		return fmt.Errorf("error when triyng to write json into file: %v", (err.Error()))
+	}
+
+	return nil
+}
