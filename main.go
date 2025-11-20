@@ -19,10 +19,13 @@ func main() {
 
 	server := routes.CreateAPIServer(&manager)
 	mux := http.NewServeMux()
+	// cors handler
+	corsHandler := routes.AllowCORS(mux)
+
 	server.RegisterRoutes(mux)
 
 	fmt.Printf("Server is running on port %d\n", serverPort)
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", serverPort), mux); err != nil {
+	if err := http.ListenAndServe(fmt.Sprintf(":%d", serverPort), corsHandler); err != nil {
 		fmt.Printf("Failed to start server: %v\n", err)
 		return
 	}

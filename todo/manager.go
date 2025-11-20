@@ -11,10 +11,11 @@ import (
 type TaskEditor interface {
 	Load() error
 
-	Add(name string, due string) error // Create
-	Get() []Task                       // Read
-	Remove(id int16) error             // Update
-	MarkasDone(id int16) error         // Delete
+	Add(name string, due string) error                         // Create
+	Get() []Task                                               // Read
+	Remove(id int16) error                                     // Delete
+	MarkasDone(id int16) error                                 // Patch / Update partially
+	Update(id int16, name string, due string, done bool) error // Update v2
 
 	SetFile(name string) error
 	Save() error
@@ -60,7 +61,7 @@ func (tm *TaskManager) Add(name string, due string) error {
 	}
 
 	tm.taskList = append(tm.taskList, Task{
-		ID:   int16(len(tm.taskList) + 1),
+		ID:   tm.taskList[len(tm.taskList)-1].ID + 1, // for safety
 		Name: name,
 		Due:  due,
 		Done: false,
@@ -104,6 +105,23 @@ func (tm *TaskManager) MarkasDone(id int16) error {
 		}
 	}
 
+	return fmt.Errorf("task #%d not found", id)
+}
+
+func (tm *TaskManager) Update(id int16, name string, due string, done bool) error {
+	for i, task := range tm.taskList {
+		if task.ID == id {
+			tm.taskList[i].Name = name
+			tm.taskList[i].Due = due
+			tm.taskList[i].Done = done
+
+			if err := tm.Save(); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
 	return fmt.Errorf("task #%d not found", id)
 }
 
