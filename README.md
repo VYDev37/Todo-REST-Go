@@ -6,7 +6,8 @@
 ## Progression
 - [x] Basic Server 
 - [x] GET Todo Router
-- [ ] POST Todo Router
-- [ ] PATCH / PUT Todo Router
-- [ ] DELETE Todo Router
-- [ ] The frontend (for the use of API)
+- [x] POST Todo Router
+- [x] PATCH / PUT Todo Router
+- [x] DELETE Todo Router
+- [ ] Massive DELETE Todo
+- [x] The frontend (for the use of API)
