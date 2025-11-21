@@ -1,7 +1,8 @@
 import axios from 'axios';
 
+const productionTest = "https://odo--o-vydev372469-xto56fun.apn.leapcell.dev";
 const axiosInstance = axios.create({
-    baseURL: `http://${window.location.hostname}:${import.meta.env.VITE_API_PORT || 8080}/`,
+    baseURL: productionTest || `http://:${window.location.hostname}/${import.meta.env.VITE_API_PORT || 8080}/`,
     headers: {
         'Content-Type': 'application/json',
     }

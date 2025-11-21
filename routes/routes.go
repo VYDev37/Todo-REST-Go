@@ -24,7 +24,8 @@ type APIServer struct {
 
 func AllowCORS(next http.Handler) http.Handler {
 	allowedOrigins := map[string]bool{ // domain_name: can access / not
-		"http://localhost:5173": true,
+		"http://localhost:5173":                 true,
+		"https://todo-rest-go-t3q9.vercel.app/": true,
 	}
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
