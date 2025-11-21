@@ -14,7 +14,7 @@ type TaskEditor interface {
 	Add(name string, due string) error                         // Create
 	Get() []Task                                               // Read
 	Remove(id int16) error                                     // Delete
-	MarkasDone(id int16) error                                 // Patch / Update partially
+	RemoveAll() error                                          // Delete all
 	Update(id int16, name string, due string, done bool) error // Update v2
 
 	SetFile(name string) error
@@ -60,8 +60,13 @@ func (tm *TaskManager) Add(name string, due string) error {
 		return errors.New("Task due date must not be empty")
 	}
 
+	var newId int16 = 1
+	if len(tm.taskList) > 0 {
+		newId = tm.taskList[len(tm.taskList)-1].ID + 1
+	}
+
 	tm.taskList = append(tm.taskList, Task{
-		ID:   tm.taskList[len(tm.taskList)-1].ID + 1, // for safety
+		ID:   newId, // for safety
 		Name: name,
 		Due:  due,
 		Done: false,
@@ -93,19 +98,14 @@ func (tm *TaskManager) Remove(id int16) error {
 	return fmt.Errorf("task #%d not found", id)
 }
 
-func (tm *TaskManager) MarkasDone(id int16) error {
-	for i, task := range tm.taskList {
-		if task.ID == id {
-			tm.taskList[i].Done = true
-			if err := tm.Save(); err != nil {
-				return err
-			}
-
-			return nil
-		}
+func (tm *TaskManager) RemoveAll() error {
+	tm.taskList = tm.taskList[:0]
+	// sve
+	if err := tm.Save(); err != nil {
+		return err
 	}
 
-	return fmt.Errorf("task #%d not found", id)
+	return nil
 }
 
 func (tm *TaskManager) Update(id int16, name string, due string, done bool) error {

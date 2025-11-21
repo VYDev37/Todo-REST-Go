@@ -48,23 +48,61 @@ export default function App() {
     );
   }
 
-  const DeleteAllButton = (e: React.FormEvent) => {
+  const DeleteAllButton = async (e: React.FormEvent) => {
     e.preventDefault();
     setTasks([]);
+
+    try {
+      await axios.delete("todos");
+    } catch (err) {
+      console.log(err);
+      return;
+    }
   }
 
-  const DeleteButton = (e: React.FormEvent, id: number) => {
+  const DeleteButton = async (e: React.FormEvent, id: number) => {
     e.preventDefault();
+    if (loading)
+      return;
+
+    setLoading(true);
+    try {
+      await axios.delete(`todo/${id}`)
+    } catch (err) {
+      console.log(err);
+      alert(err);
+      return;
+    } finally {
+      setLoading(false);
+    }
+    GetTasks();
   }
 
-  const EditButton = (e: React.FormEvent, id: number) => {
+  const EditButton = async (e: React.FormEvent, id: number) => {
     e.preventDefault();
 
-    setTasks(prev =>
-      prev.map(todo =>
-        todo.ID === id ? { ...todo, editing: !todo.editing } : todo
-      )
-    );
+    if (loading)
+      return;
+
+    const data = tasks.find(t => t.ID === id);
+    if (!data)
+      return;
+
+    const isSaving = data.editing;
+    if (isSaving) {
+      setLoading(true);
+      try {
+        await axios.put(`todo/${data.ID}`, data);
+      } catch (err) {
+        console.log(err);
+        alert(err);
+        return;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    setTasks(prev => prev.map(todo => todo.ID === id ? {...todo, editing: !todo.editing} : todo));
   };
 
   const SubmitButton = async (e: React.FormEvent) => {
@@ -110,7 +148,7 @@ export default function App() {
 
           <form className="flex flex-wrap items-center justify-center gap-4 mb-6" onSubmit={(e) => SubmitButton(e)}>
             <div className="relative min-w-[200px] flex-1">
-              <input type="text" onChange={(e) => SetFormBody("Name", e.target.value)} className="peer h-10 text-sm bg-gray-100 outline-none border border-gray-300 rounded px-3 py-1 w-full" placeholder=" " required />
+              <input type="text" value={body.Name} onChange={(e) => SetFormBody("Name", e.target.value)} className="peer h-10 text-sm bg-gray-100 outline-none border border-gray-300 rounded px-3 py-1 w-full" placeholder=" " required />
               <label htmlFor="task-content" className="absolute left-3 top-2 text-sm text-gray-500 transition-all duration-300 
                             peer-placeholder-shown:top-2 peer-placeholder-shown:text-sm
                             peer-focus:top-[-0.5rem] peer-focus:text-xs peer-focus:text-blue-600 peer-[&amp;:not(:placeholder-shown)]:top-[-0.5rem] 
@@ -118,7 +156,7 @@ export default function App() {
                             bg-gray-100 px-1">Task Name</label>
             </div>
             <div className="relative min-w-[160px] flex-1">
-              <input type="date" onChange={(e) => SetFormBody("Due", e.target.value)} className="peer h-10 text-sm bg-gray-100 text-gray-500 outline-none border border-gray-300 rounded px-3 py-1 w-full" placeholder="" required />
+              <input type="date" value={body.Due} onChange={(e) => SetFormBody("Due", e.target.value)} className="peer h-10 text-sm bg-gray-100 text-gray-500 outline-none border border-gray-300 rounded px-3 py-1 w-full" placeholder="" required />
             </div>
             <div className="flex justify-center gap-4">
               <button disabled={loading} type="submit" className="px-3 py-1 rounded text-2xl bg-green-400 hover:bg-green-200 cursor-pointer transition-colors duration-300 ease-in-out">+</button>

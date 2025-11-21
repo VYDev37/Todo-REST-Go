@@ -99,21 +99,13 @@ func (server *APIServer) HandleDeleteTodo(res http.ResponseWriter, req *http.Req
 	SendMessage(res, http.StatusAccepted, "Task removed from the list.")
 }
 
-func (server *APIServer) HandleDone(res http.ResponseWriter, req *http.Request) {
-	rawId := req.PathValue("id")
-	id, err := strconv.Atoi(rawId)
-
-	if err != nil {
-		http.Error(res, "ID must be number.", http.StatusBadRequest)
+func (server *APIServer) HandleDeleteAll(res http.ResponseWriter, req *http.Request) {
+	if err := server.Manager.RemoveAll(); err != nil {
+		http.Error(res, fmt.Sprintf("Failed to purge task: %v.", err), http.StatusBadRequest)
 		return
 	}
 
-	if err := server.Manager.MarkasDone(int16(id)); err != nil {
-		http.Error(res, fmt.Sprintf("Failed to mark task as done: %v.", err), http.StatusBadRequest)
-		return
-	}
-
-	SendMessage(res, http.StatusAccepted, "Task marked as done.")
+	SendMessage(res, http.StatusAccepted, "Task purged.")
 }
 
 func (server *APIServer) HandleUpdateTodo(res http.ResponseWriter, req *http.Request) {
@@ -148,6 +140,6 @@ func (server *APIServer) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /todos", server.HandleGetTodo)
 	mux.HandleFunc("POST /add-todo", server.HandleAddTodo)
 	mux.HandleFunc("DELETE /todo/{id}", server.HandleDeleteTodo)
+	mux.HandleFunc("DELETE /todos", server.HandleDeleteAll)
 	mux.HandleFunc("PUT /todo/{id}", server.HandleUpdateTodo)
-	mux.HandleFunc("PATCH /done/{id}", server.HandleDone)
 }
