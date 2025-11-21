@@ -1,8 +1,7 @@
 import axios from 'axios';
 
-const productionTest = "";
 const axiosInstance = axios.create({
-    baseURL: productionTest || `http://:${window.location.hostname}/${import.meta.env.VITE_API_PORT || 8080}/`,
+    baseURL: `http://${window.location.hostname}:${import.meta.env.VITE_API_PORT || 8080}/`,
     headers: {
         'Content-Type': 'application/json',
     }

@@ -207,8 +207,11 @@ export default function App() {
                         </div>
                       </td>
                     </tr>
-
-                  )) : (<td colSpan={5} className="px-2 py-1">No data available.</td>)
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="px-2 py-1">No data available.</td>
+                    </tr>
+                  )
               }
             </tbody>
           </table>
